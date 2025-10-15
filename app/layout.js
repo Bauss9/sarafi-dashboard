@@ -3,7 +3,7 @@ import Sidebar from '@/components/SideBar'
 
 export const metadata = {
   title: 'Admin Dashboard - DR. SARAFI',
-  description: 'Booking management system',
+  description: 'Buchen ollem',
 }
 
 export default function RootLayout({ children }) {
