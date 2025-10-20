@@ -23,6 +23,21 @@ export default function BookingsPage() {
     }
   };
 
+  const handleConfirm = async (id) => {
+    if (!confirm('Termin bestätigen und Bestätigungs-E-Mail senden?')) {
+      return;
+    }
+
+    try {
+      await api.confirmBooking(id);
+      alert('Termin erfolgreich bestätigt und E-Mail versendet');
+      loadBookings();
+    } catch (error) {
+      console.error('Error confirming booking:', error);
+      alert(error.response?.data?.message || 'Fehler beim Bestätigen');
+    }
+  };
+
   const handleCancel = async (id) => {
     if (!confirm('Sind Sie sicher, dass Sie diese Buchung stornieren möchten?')) {
       return;
@@ -108,6 +123,7 @@ export default function BookingsPage() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dauer</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Preis</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bestätigt</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aktionen</th>
             </tr>
           </thead>
@@ -129,17 +145,38 @@ export default function BookingsPage() {
                 <td className="px-6 py-4 text-sm font-semibold text-gray-900">€ {booking.price}</td>
                 <td className="px-6 py-4">{getStatusBadge(booking.payment_status)}</td>
                 <td className="px-6 py-4">
-                  {booking.payment_status === 'completed' && (
-                    <button
-                      onClick={() => handleCancel(booking.id)}
-                      className="text-red-600 hover:text-red-800 font-medium text-sm"
-                    >
-                      Stornieren
-                    </button>
+                  {booking.confirmed ? (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                      ✓ Bestätigt
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                      Nicht bestätigt
+                    </span>
                   )}
-                  {booking.payment_status === 'refunded' && (
-                    <span className="text-gray-400 text-sm">Storniert</span>
-                  )}
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex gap-2">
+                    {booking.payment_status === 'completed' && !booking.confirmed && (
+                      <button
+                        onClick={() => handleConfirm(booking.id)}
+                        className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 font-medium text-sm shadow-md hover:shadow-lg transition-all duration-200"
+                      >
+                        ✓ Bestätigen
+                      </button>
+                    )}
+                    {booking.payment_status === 'completed' && (
+                      <button
+                        onClick={() => handleCancel(booking.id)}
+                        className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 font-medium text-sm shadow-md hover:shadow-lg transition-all duration-200"
+                      >
+                        ✗ Stornieren
+                      </button>
+                    )}
+                    {booking.payment_status === 'refunded' && (
+                      <span className="text-gray-400 text-sm">Storniert</span>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
